@@ -25,7 +25,7 @@ class View:
 	def showDrive(self, dri_arr, txt_arr):
 		self.drawGraph(dri_arr, x_gap=0.01, y_gap=0.05, thickness=1, width_ratio=0.65)
 		self.drawText(0.67, 0.05, txt_arr)
-		cv2.putText(self.image, 'Driver Risk Index Calculator - ver 1.0, Hyundai hackahton, gongmozadul', (0, 20),
+		cv2.putText(self.image, 'Driver Risk Index Calc., HYUNDAI Hackahton, Gong-mo-za-dul.', (0, 20),
                     cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255))
 		self.show()
 
