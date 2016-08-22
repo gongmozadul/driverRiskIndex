@@ -11,11 +11,14 @@ import sys
 from datetime import datetime
 import pyaudio
 import wave
+import serial
 
 # internal modules
 import imageprocess
 import view
 import handle as h
+import data
+data = data.Data
 
 def beep(filename='beep.wav'):
     wf = wave.open(filename, 'rb')
@@ -59,7 +62,10 @@ if __name__ == '__main__':
 	view = view.View("Drive Risk Index - GongMoJaDul")
 	face = imageprocess.ObjectDetect("haarcascade_frontalface_default.xml")
 	eye = imageprocess.ObjectDetect("haarcascade_eye.xml")
-	handle = h.Handle("/dev/cu.usbmodem14221")
+	try:
+		handle = h.Handle("/dev/cu.usbmodem14221")
+	except serial.serialutil.SerialException:
+		print "SerialException"				
 
 	face.setOption({
 		'scaleFactor': 1.1,
@@ -71,6 +77,8 @@ if __name__ == '__main__':
 	eye.setOption({
 		'maxSize': (25, 25)
 	})
+
+	realtime = data('bigdata/20160419T145944.log.csv')
 
 	while True:
 		inputed = cv2.waitKey(1) & 0xFF
@@ -159,17 +167,36 @@ if __name__ == '__main__':
 			view.resize(2.5)
 
 			pressure = handle.getPressure()
-			time = datetime.now().strftime('%S.%f')[:-3]
 
-			push_value(dri_arr, dri_limit, pressure[1])
-			push_value(txt_arr, txt_limit, time + "  " + pressure[0])
+			row = realtime.getRow()
+			value, txt_arr2 = realtime.calcRealtimeIndex(row)
+
+			# push_value(dri_arr, dri_limit, pressure[1])
+			push_value(dri_arr, dri_limit, value)
+
+			for txt in txt_arr2:
+				time = datetime.now().strftime('%S.%f')[:-3]				
+				push_value(txt_arr, txt_limit, time + "  " + txt)
 
 			view.showDrive(dri_arr, txt_arr)
 
 		elif state == MENU_STATE:
+			summary = data('bigdata/summary.csv')
+
+			dri_arr2 = []
+
+			while True:
+				row = summary.getRow()
+				if row == False:
+					break
+				index = summary.calcSummaryIndex(row)
+				dri_arr2.append(index)
+
+			txt_arr2 = summary.getSummaryText(dri_arr2)
+			
 			view.setImage(image)
 			view.resize(2.5)
-			view.showMain([10,50,100], ["ABCD"])
+			view.showMain(dri_arr2, txt_arr2)
 		
 	del(handle)
 

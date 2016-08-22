@@ -71,12 +71,9 @@ class View:
 			width *= width_ratio
 			width = int(round(width)) 
 
-		tmp = len(dri_arr) / 3
-		tmp = tmp if tmp != 0 else 1
-		last_value = tmp
-		if dri_arr[-1] < last_value:
+		if dri_arr[-1] < 33:
 			color = (0, 0, 255)
-		elif dri_arr[-1] < last_value*2:
+		elif dri_arr[-1] < 66:
 			color = (0, 255, 255)
 		else:
 			color = (0, 255, 0)
