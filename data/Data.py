@@ -28,13 +28,46 @@ class Data:
 			return False
 
 	def calcSummaryIndex(self, row):
-		return 30
+		acc = 0
+		dec = 0
+		for i in range(19,23):
+			acc += float(row[i])
+
+		for i in range(23,28):
+			dec += float(row[i])
+
+		bKnight = False
+		hour = int(('%06d'%(int(row[6])))[0:2])
+		if (0 <= hour and hour < 4) or (20 <= hour and hour <= 24):
+			bKnight = True
+
+		return int(round(self.calc_summary(acc, dec, float(row[7]), bKnight)))
 
 	def getSummaryText(self, dri_arr):
-		return ["ABCD"]
+		last = dri_arr[-1]
+		ret = ["Your last drive risk index result is ["]
+
+		# last state
+		if last > 66:
+			ret[0] += "BAD]"
+			ret.append("Change your driving statement")
+		elif last > 33:
+			ret[0] += "NORMAL]"
+			ret.append("Do better your driving statement")
+		else:
+			ret[0] += "GOOD]"
+			ret.append("Keep your driving statement")
+
+		return ret
 
 	def calcRealtimeIndex(self, row, pressure, eye):
 		return self.calc_dri(int(row[7]), row[17], float(row[18]), pressure, float(row[13]), eye)
+
+	# acc 급가속 전체 횟수, dec 급감속 전체 횟수, km 는 주행거리, night는 주행시작여부
+	def calc_summary(self, acc, dec, km, night):
+		acc *= 0.43
+		dec *= 0.57
+		return (acc + dec) * 0.56 + km * 0.19 + night * 0.25
 
 	def calc_dri(self, kph, road, grade, pressure, wheel_degree, eyeopen):
 

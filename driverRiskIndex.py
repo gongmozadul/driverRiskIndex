@@ -13,6 +13,7 @@ import pyaudio
 import wave
 import serial
 import time
+import threading
 
 # internal modules
 import imageprocess
@@ -21,21 +22,49 @@ import handle as h
 import data
 data = data.Data
 
-def beep(filename='beep.wav'):
-    wf = wave.open(filename, 'rb')
-    pya = pyaudio.PyAudio()
-    stream = pya.open(format=pya.get_format_from_width(wf.getsampwidth()),
-                      channels=wf.getnchannels(),
-                      rate=wf.getframerate(),
-                      output=True)
-    data = wf.readframes(1024)
+class beepLoop(threading.Thread):
+	def __init__(self, path='beep.wav'):
+		threading.Thread.__init__(self)
+		self.__exit = False
+		self.__beep = False
+		
+	def run(self):
 
-    while data != '':
-        stream.write(data)
-        data = wf.readframes(1024)
+		while True:
+			time.sleep(0.1)
 
-    stream.close()
-    pya.terminate()
+			if self.__beep:
+				self.beep()
+
+			### Exit ###
+			if self.__exit:				
+				break
+
+	def Stop(self):
+		self.__exit = True
+		time.sleep(0.5)
+
+	def beepStart(self):
+		self.__beep = True
+
+	def beepStop(self):
+		self.__beep = False
+
+	def beep(self):
+		wf = wave.open('beep.wav', 'rb')
+		pya = pyaudio.PyAudio()
+		stream = pya.open(format=pya.get_format_from_width(wf.getsampwidth()),
+						  channels=wf.getnchannels(),
+						  rate=wf.getframerate(),
+						  output=True)
+		data = wf.readframes(1024)
+		while data != '':
+			stream.write(data)
+			data = wf.readframes(1024)
+
+		stream.close()
+		pya.terminate()
+
 
 def push_value(arr, limit, value):
 	if len(arr) > limit:
@@ -64,6 +93,8 @@ if __name__ == '__main__':
 	view = view.View("Drive Risk Index - GongMoJaDul")
 	face = imageprocess.ObjectDetect("haarcascade_frontalface_default.xml")
 	eye = imageprocess.ObjectDetect("haarcascade_eye.xml")
+	beep = beepLoop()
+	beep.start()
 	try:
 		handle = h.Handle("/dev/cu.usbmodem14221")
 	except serial.serialutil.SerialException:
@@ -186,6 +217,10 @@ if __name__ == '__main__':
 				oldTime = newTime
 				row = realtime.getRow()
 				value, txt_arr2 = realtime.calcRealtimeIndex(row, pressure[1], result['eye'])
+				if value == 100:
+					beep.beepStart()
+				else:
+					beep.beepStop()
 				# print value
 
 				# push_value(dri_arr, dri_limit, pressure[1])
@@ -196,6 +231,10 @@ if __name__ == '__main__':
 					push_value(txt_arr, txt_limit, cur_time + "  " + txt)
 			elif row != None:
 				value, txt_arr2 = realtime.calcRealtimeIndex(row, pressure[1], result['eye'])
+				if value == 100:
+					beep.beepStart()
+				else:
+					beep.beepStop()
 				# print value
 
 				# push_value(dri_arr, dri_limit, pressure[1])
@@ -218,6 +257,7 @@ if __name__ == '__main__':
 				if row == False:
 					break
 				index = summary.calcSummaryIndex(row)
+				# print index
 				dri_arr2.append(index)
 
 			txt_arr2 = summary.getSummaryText(dri_arr2)
@@ -227,6 +267,7 @@ if __name__ == '__main__':
 			view.showMain(dri_arr2, txt_arr2)
 		
 	del(handle)
+	beep.Stop()
 
 
 
