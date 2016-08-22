@@ -12,6 +12,7 @@ from datetime import datetime
 import pyaudio
 import wave
 import serial
+import time
 
 # internal modules
 import imageprocess
@@ -50,6 +51,7 @@ if __name__ == '__main__':
 	oldX = camera_width / 2
 	oldY = camera_height / 2
 	oldCount = 0
+	oldTime = time.time()
 	state = 0
 	MENU_STATE = 0
 	DRIVE_STATE = 1
@@ -78,7 +80,7 @@ if __name__ == '__main__':
 		'maxSize': (25, 25)
 	})
 
-	realtime = data('bigdata/20160419T145944.log.csv')
+	realtime = data('bigdata/realtime.csv')
 
 	while True:
 		inputed = cv2.waitKey(1) & 0xFF
@@ -168,15 +170,19 @@ if __name__ == '__main__':
 
 			pressure = handle.getPressure()
 
-			row = realtime.getRow()
-			value, txt_arr2 = realtime.calcRealtimeIndex(row)
+			newTime = time.time()
+			if newTime - oldTime > 1: # 1 second loop
+				oldTime = newTime
+				row = realtime.getRow()
+				value, txt_arr2 = realtime.calcRealtimeIndex(row, pressure[1], result['eye'])
+				# print value
 
-			# push_value(dri_arr, dri_limit, pressure[1])
-			push_value(dri_arr, dri_limit, value)
+				# push_value(dri_arr, dri_limit, pressure[1])
+				push_value(dri_arr, dri_limit, value)
 
-			for txt in txt_arr2:
-				time = datetime.now().strftime('%S.%f')[:-3]				
-				push_value(txt_arr, txt_limit, time + "  " + txt)
+				for txt in txt_arr2:
+					cur_time = datetime.now().strftime('%S.%f')[:-3]				
+					push_value(txt_arr, txt_limit, cur_time + "  " + txt)
 
 			view.showDrive(dri_arr, txt_arr)
 

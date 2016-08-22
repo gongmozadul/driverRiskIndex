@@ -25,6 +25,8 @@ class View:
 	def showDrive(self, dri_arr, txt_arr):
 		self.drawGraph(dri_arr, x_gap=0.01, y_gap=0.05, thickness=1, width_ratio=0.65)
 		self.drawText(0.67, 0.05, txt_arr)
+		cv2.putText(self.image, 'Driver Risk Index Calculator - ver 1.0, Hyundai hackahton, gongmozadul', (0, 20),
+                    cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255))
 		self.show()
 
 	def drawText(self, x_ratio, y_ratio, txt_arr):
@@ -72,11 +74,11 @@ class View:
 			width = int(round(width)) 
 
 		if dri_arr[-1] < 33:
-			color = (0, 0, 255)
+			color = (0, 255, 0)
 		elif dri_arr[-1] < 66:
 			color = (0, 255, 255)
 		else:
-			color = (0, 255, 0)
+			color = (0, 0, 255)
 
 		# Graph Position
 		x = int(round(width * x_gap))
