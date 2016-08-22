@@ -18,7 +18,7 @@ import threading
 # internal modules
 import imageprocess
 import view
-import handle as h
+# import handle as h
 import data
 data = data.Data
 
@@ -65,7 +65,6 @@ class beepLoop(threading.Thread):
 		stream.close()
 		pya.terminate()
 
-
 def push_value(arr, limit, value):
 	if len(arr) > limit:
 		arr.pop(0)
@@ -95,10 +94,10 @@ if __name__ == '__main__':
 	eye = imageprocess.ObjectDetect("haarcascade_eye.xml")
 	beep = beepLoop()
 	beep.start()
-	try:
-		handle = h.Handle("/dev/cu.usbmodem14221")
-	except serial.serialutil.SerialException:
-		print "SerialException"				
+	# try:
+	# 	handle = h.Handle("/dev/cu.usbmodem14221")
+	# except serial.serialutil.SerialException:
+	# 	print "SerialException"				
 
 	face.setOption({
 		'scaleFactor': 1.1,
@@ -209,7 +208,8 @@ if __name__ == '__main__':
 			view.setImage(image)
 			view.resize(2.5)
 
-			pressure = handle.getPressure()
+			# pressure = handle.getPressure()
+			pressure = ['', 2000]
 
 			newTime = time.time()
 			row = None
@@ -266,7 +266,7 @@ if __name__ == '__main__':
 			view.resize(2.5)
 			view.showMain(dri_arr2, txt_arr2)
 		
-	del(handle)
+	# del(handle)
 	beep.Stop()
 
 
