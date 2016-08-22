@@ -98,6 +98,7 @@ if __name__ == '__main__':
 		}
 
 		ret, image = camera.getImage()
+		image = cv2.flip(image, 1)
 
 		if state == DRIVE_STATE:
 			gray = camera.convertGray(image)
@@ -131,7 +132,7 @@ if __name__ == '__main__':
 				opacity = 0.4
 				cv2.addWeighted(overlay, opacity, image, 1 - opacity, 0, image)
 
-				cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+				# cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
 				# sys.stdout.write("          ")			
 				# sys.stdout.write(str(oldX - x)+', '+str(oldY - y))
@@ -140,9 +141,11 @@ if __name__ == '__main__':
 				turnOffset = 10
 				if oldX - x > turnOffset:
 					result['view'] = 'R'
+					cv2.arrowedLine(image, (x+w,(2*y+h)/2), (x,(2*y+h)/2), (0, 255, 0), thickness=2)
 					# sys.stdout.write("R")
 				elif oldX - x < -turnOffset:
 					result['view'] = 'L'
+					cv2.arrowedLine(image, (x,(2*y+h)/2), (x+w,(2*y+h)/2), (0, 255, 0), thickness=2)
 					# sys.stdout.write("L")
 				else:
 					result['view'] = 'N'
@@ -150,9 +153,11 @@ if __name__ == '__main__':
 
 				if oldY - y > turnOffset:
 					result['view'] += 'U'
+					cv2.arrowedLine(image, ((2*x+w)/2,y+h), ((2*x+w)/2,y), (0, 255, 0), thickness=2)
 					# sys.stdout.write("U")
 				elif oldY - y < -turnOffset:
 					result['view'] += 'D'
+					cv2.arrowedLine(image, ((2*x+w)/2,y), ((2*x+w)/2,y+h), (0, 255, 0), thickness=2)
 					# sys.stdout.write("D")
 				else:
 					result['view'] += 'N'
@@ -176,6 +181,7 @@ if __name__ == '__main__':
 			pressure = handle.getPressure()
 
 			newTime = time.time()
+			row = None
 			if newTime - oldTime > 1: # 1 second loop
 				oldTime = newTime
 				row = realtime.getRow()
@@ -188,6 +194,17 @@ if __name__ == '__main__':
 				for txt in txt_arr2:
 					cur_time = datetime.now().strftime('%S.%f')[:-3]				
 					push_value(txt_arr, txt_limit, cur_time + "  " + txt)
+			elif row != None:
+				value, txt_arr2 = realtime.calcRealtimeIndex(row, pressure[1], result['eye'])
+				# print value
+
+				# push_value(dri_arr, dri_limit, pressure[1])
+				push_value(dri_arr, dri_limit, value)
+
+				for txt in txt_arr2:
+					cur_time = datetime.now().strftime('%S.%f')[:-3]				
+					push_value(txt_arr, txt_limit, cur_time + "  " + txt)
+
 
 			view.showDrive(dri_arr, txt_arr)
 
