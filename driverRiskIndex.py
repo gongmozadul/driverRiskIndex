@@ -123,8 +123,13 @@ if __name__ == '__main__':
 
 				# sys.stdout.write(' '+str(maxH)+', '+str(maxW)+', '+str(w)+', '+str(h))
 
+				overlay = image.copy()
+				offset = 10
 				for (ex,ey,ew,eh) in eyes:
-					cv2.rectangle(image,(x+ex,y+ey),(x+ex+ew,y+ey+eh),(255,0,0),2)
+					cv2.circle(overlay, (x+ex+offset,y+ey+offset),12,(255,0,0), -1)
+					# cv2.rectangle(image,(x+ex,y+ey),(x+ex+ew,y+ey+eh),(255,0,0),2)
+				opacity = 0.4
+				cv2.addWeighted(overlay, opacity, image, 1 - opacity, 0, image)
 
 				cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
