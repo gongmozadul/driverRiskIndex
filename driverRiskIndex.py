@@ -133,12 +133,12 @@ if __name__ == '__main__':
 
 				# sys.stdout.write("          ")
 
-			# sys.stdout.write("\r")
-			# sys.stdout.write(str(result))
-			# sys.stdout.flush()
+			sys.stdout.write("\r")
+			sys.stdout.write(str(result))
+			sys.stdout.flush()
 
 			view.setImage(image)
-			view.resize(2)
+			view.resize(2.5)
 
 			pressure = handle.getPressure()
 			time = datetime.now().strftime('%S.%f')[:-3]
@@ -150,7 +150,7 @@ if __name__ == '__main__':
 
 		elif state == MENU_STATE:
 			view.setImage(image)
-			view.resize(2)
+			view.resize(2.5)
 			view.showMain([10,50,100], ["ABCD"])
 		
 	del(handle)
