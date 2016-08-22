@@ -7,6 +7,5 @@
 
 import cv2
 
-from View import View
 from ObjectDetect import ObjectDetect
 from Camera import Camera
