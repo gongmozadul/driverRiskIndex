@@ -22,6 +22,9 @@ class View:
 	def show(self):
 		cv2.imshow(self.title, self.image)
 
+	def showDrive(self):
+		pass
+
 	def showMain(self, dir_arr, text_arr):
 		# Draw Background
 		height, width, channel = self.image.shape
@@ -40,7 +43,7 @@ class View:
 				car_img[:, :, i] * (car_img[:, :, 3]/255.0) + self.image[img_y:img_y + img_height, img_x:img_x + img_width, i] * (1.0 - car_img[:, :, 3]/255.0)
 
 		# Draw Graph
-		self.drawgraph(dir_arr, (255, 255, 255), thickness=2)
+		self.drawgraph(dir_arr, thickness=2)
 
 		# Draw result
 		for i in range(len(text_arr)):
@@ -51,8 +54,16 @@ class View:
 
 		self.show()
 
-	def drawgraph(self, dir_arr, color, x_gap=0.1, y_gap=0.05, thickness=1):
+	def drawgraph(self, dir_arr, x_gap=0.1, y_gap=0.05, thickness=1):
 		height, width, channel = self.image.shape
+
+		last_value = len(dir_arr) / 3
+		if dir_arr[-1] < last_value:
+			color = (0, 0, 255)
+		elif dir_arr[-1] < last_value*2:
+			color = (0, 255, 255)
+		else:
+			color = (0, 255, 0)
 
 		# Graph Position
 		x = int(round(width * x_gap))
