@@ -14,6 +14,7 @@ import wave
 import serial
 import time
 import threading
+import SocketServer
 
 # internal modules
 import imageprocess
@@ -65,6 +66,47 @@ class beepLoop(threading.Thread):
 		stream.close()
 		pya.terminate()
 
+class TcpLoop(threading.Thread):
+	class MyTCPHandler(SocketServer.BaseRequestHandler):
+		def handle(self):
+			# self.request is the TCP socket connected to the client
+			while True:
+				self.data = self.request.recv(1).strip()
+				print "{} wrote:".format(self.client_address[0])
+				print self.data
+				if self.data == '1':
+					print '1'
+					wf = wave.open('beep.wav', 'rb')
+					pya = pyaudio.PyAudio()
+					stream = pya.open(format=pya.get_format_from_width(wf.getsampwidth()),
+									  channels=wf.getnchannels(),
+									  rate=wf.getframerate(),
+									  output=True)
+					data = wf.readframes(1024)
+					while data != '':
+						stream.write(data)
+						data = wf.readframes(1024)
+
+					stream.close()
+					pya.terminate()
+				elif self.data == '0':
+					print '0'
+					break
+
+	def __init__(self, beep):
+		threading.Thread.__init__(self)
+		self.__exit = False
+		
+	def run(self):
+		server = SocketServer.TCPServer(("127.0.0.1", 39999), self.MyTCPHandler)
+		self.server = server
+		server.serve_forever()
+
+	def Stop(self):
+		self.server.shutdown()
+		time.sleep(0.5)
+
+
 def push_value(arr, limit, value):
 	if len(arr) > limit:
 		arr.pop(0)
@@ -94,6 +136,8 @@ if __name__ == '__main__':
 	eye = imageprocess.ObjectDetect("haarcascade_eye.xml")
 	beep = beepLoop()
 	beep.start()
+	tcp = TcpLoop(beep)
+	tcp.start()
 	# try:
 	# 	handle = h.Handle("/dev/cu.usbmodem14221")
 	# except serial.serialutil.SerialException:
@@ -217,6 +261,7 @@ if __name__ == '__main__':
 				oldTime = newTime
 				row = realtime.getRow()
 				value, txt_arr2 = realtime.calcRealtimeIndex(row, pressure[1], result['eye'])
+				value = 0
 				if value == 100:
 					beep.beepStart()
 				else:
@@ -231,6 +276,7 @@ if __name__ == '__main__':
 					push_value(txt_arr, txt_limit, cur_time + "  " + txt)
 			elif row != None:
 				value, txt_arr2 = realtime.calcRealtimeIndex(row, pressure[1], result['eye'])
+				value = 0
 				if value == 100:
 					beep.beepStart()
 				else:
@@ -268,6 +314,7 @@ if __name__ == '__main__':
 		
 	# del(handle)
 	beep.Stop()
+	tcp.Stop()
 
 
 
