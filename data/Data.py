@@ -71,7 +71,7 @@ class Data:
 
 	def calc_dri(self, kph, road, grade, pressure, wheel_degree, eyeopen):
 
-		print kph, road, grade, pressure, wheel_degree, eyeopen
+		# print kph, road, grade, pressure, wheel_degree, eyeopen
 
 		result = ["Road type: "+str(road), "Gradient: "+str(round(grade, 4)), "handle pressure: "+str(pressure), "wheel: "+str(wheel_degree), "eye open: "+str(eyeopen)]
 
@@ -130,7 +130,7 @@ class Data:
 		# dri를 계산
 		dri = speed / 4 + degree * 5 + 25-(pressure / 100) + eye * 100
 
-		print speed, degree, pressure, eye
+		# print speed, degree, pressure, eye
 
 		# dri가 100보다 클경우 100
 		if dri > 100 or dri < 0:

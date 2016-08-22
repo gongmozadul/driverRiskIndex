@@ -14,6 +14,7 @@ import wave
 import serial
 import time
 import threading
+import socket
 
 # internal modules
 import imageprocess
@@ -27,18 +28,31 @@ class beepLoop(threading.Thread):
 		threading.Thread.__init__(self)
 		self.__exit = False
 		self.__beep = False
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		
 	def run(self):
+		try:
+			# Connect to server and send data
+			self.sock.settimeout(3)
+			self.sock.connect(("10.10.100.108", 39999))
+			self.sock.settimeout(None)
 
-		while True:
-			time.sleep(0.1)
+			while True:
+				time.sleep(0.1)
 
-			if self.__beep:
-				self.beep()
+				if self.__beep:
+					self.sock.sendall("1\n")
+					self.beep()
 
-			### Exit ###
-			if self.__exit:				
-				break
+				### Exit ###
+				if self.__exit:		
+					self.sock.sendall("0\n")
+					self.sock.close()		
+					break
+
+		finally:
+			print 'socket connect error'
+			self.sock.close()
 
 	def Stop(self):
 		self.__exit = True
@@ -202,9 +216,9 @@ if __name__ == '__main__':
 
 				# sys.stdout.write("          ")
 
-			sys.stdout.write("\r")
-			sys.stdout.write(str(result))
-			sys.stdout.flush()
+			# sys.stdout.write("\r")
+			# sys.stdout.write(str(result))
+			# sys.stdout.flush()
 
 			view.setImage(image)
 			view.resize(2.5)
