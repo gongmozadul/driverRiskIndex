@@ -98,7 +98,7 @@ class TcpLoop(threading.Thread):
 		self.__exit = False
 		
 	def run(self):
-		server = SocketServer.TCPServer(("127.0.0.1", 39999), self.MyTCPHandler)
+		server = SocketServer.TCPServer(("0.0.0.0", 39999), self.MyTCPHandler)
 		self.server = server
 		server.serve_forever()
 
