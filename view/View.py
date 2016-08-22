@@ -22,10 +22,20 @@ class View:
 	def show(self):
 		cv2.imshow(self.title, self.image)
 
-	def showDrive(self):
-		pass
+	def showDrive(self, dri_arr, txt_arr):
+		self.drawGraph(dri_arr, x_gap=0.01, y_gap=0.05, thickness=1, width_ratio=0.65)
+		self.drawText(0.67, 0.05, txt_arr)
+		self.show()
 
-	def showMain(self, dir_arr, text_arr):
+	def drawText(self, x_ratio, y_ratio, txt_arr):
+		height, width, channel = self.image.shape
+		x = int(round(width * x_ratio))
+		y = height - int(round(height * y_ratio))
+		# Draw Text
+		for i in range(len(txt_arr)):
+			cv2.putText(self.image, txt_arr[i], (x, y - (20 * i)), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (255, 255, 255))
+
+	def showMain(self, dri_arr, text_arr):
 		# Draw Background
 		height, width, channel = self.image.shape
 		image = self.image.copy()
@@ -43,7 +53,7 @@ class View:
 				car_img[:, :, i] * (car_img[:, :, 3]/255.0) + self.image[img_y:img_y + img_height, img_x:img_x + img_width, i] * (1.0 - car_img[:, :, 3]/255.0)
 
 		# Draw Graph
-		self.drawgraph(dir_arr, thickness=2)
+		self.drawGraph(dri_arr, thickness=2)
 
 		# Draw result
 		for i in range(len(text_arr)):
@@ -54,13 +64,19 @@ class View:
 
 		self.show()
 
-	def drawgraph(self, dir_arr, x_gap=0.1, y_gap=0.05, thickness=1):
+	def drawGraph(self, dri_arr, x_gap=0.1, y_gap=0.05, thickness=1, width_ratio=0):
 		height, width, channel = self.image.shape
 
-		last_value = len(dir_arr) / 3
-		if dir_arr[-1] < last_value:
+		if width_ratio != 0:
+			width *= width_ratio
+			width = int(round(width)) 
+
+		tmp = len(dri_arr) / 3
+		tmp = tmp if tmp != 0 else 1
+		last_value = tmp
+		if dri_arr[-1] < last_value:
 			color = (0, 0, 255)
-		elif dir_arr[-1] < last_value*2:
+		elif dri_arr[-1] < last_value*2:
 			color = (0, 255, 255)
 		else:
 			color = (0, 255, 0)
@@ -70,12 +86,14 @@ class View:
 		y = int(round(height - (height * y_gap)))
 
 		# Graph Gap
-		gap = (width - x * 2) / (len(dir_arr)-1)
+		tmp = (len(dri_arr)-1)
+		tmp = tmp if tmp != 0 else 1
+		gap = (width - x * 2) / tmp
 
 		# Draw Standard Line
-		cv2.line(self.image, (x, y - 50), (x + (gap * (len(dir_arr)-1)), y - 50), (128, 128, 128), thickness)
+		cv2.line(self.image, (x, y - 50), (x + (gap * (len(dri_arr)-1)), y - 50), (128, 128, 128), thickness)
 
 		# Draw graph
-		for i in range(len(dir_arr) - 1):
-			cv2.line(self.image, (x + (i * gap), y - dir_arr[i]), (x + ((i + 1) * gap), y - dir_arr[i + 1]), color, thickness)
+		for i in range(len(dri_arr) - 1):
+			cv2.line(self.image, (x + (i * gap), y - dri_arr[i]), (x + ((i + 1) * gap), y - dri_arr[i + 1]), color, thickness)
 

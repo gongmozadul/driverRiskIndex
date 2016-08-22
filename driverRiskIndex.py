@@ -8,10 +8,17 @@
 # global modules
 import cv2
 import sys
+from datetime import datetime
 
 # internal modules
 import imageprocess
 import view
+import handle as h
+
+def push_value(arr, limit, value):
+	if len(arr) > limit:
+		arr.pop(0)
+	arr.append(value)
 
 if __name__ == '__main__':
 
@@ -25,11 +32,16 @@ if __name__ == '__main__':
 	state = 0
 	MENU_STATE = 0
 	DRIVE_STATE = 1
+	txt_arr = []
+	txt_limit = 20
+	dri_arr = []
+	dri_limit = 100
 
 	camera = imageprocess.Camera(0, camera_width, camera_height)
 	view = view.View("Drive Risk Index - GongMoJaDul")
 	face = imageprocess.ObjectDetect("haarcascade_frontalface_default.xml")
 	eye = imageprocess.ObjectDetect("haarcascade_eye.xml")
+	handle = h.Handle("/dev/cu.usbmodem14221")
 
 	face.setOption({
 		'scaleFactor': 1.1,
@@ -121,20 +133,27 @@ if __name__ == '__main__':
 
 				# sys.stdout.write("          ")
 
-			sys.stdout.write("\r")
-			sys.stdout.write(str(result))
-			sys.stdout.flush()
+			# sys.stdout.write("\r")
+			# sys.stdout.write(str(result))
+			# sys.stdout.flush()
 
 			view.setImage(image)
 			view.resize(2)
-			view.show()
+
+			pressure = handle.getPressure()
+			time = datetime.now().strftime('%S.%f')[:-3]
+
+			push_value(dri_arr, dri_limit, pressure[1])
+			push_value(txt_arr, txt_limit, time + "  " + pressure[0])
+
+			view.showDrive(dri_arr, txt_arr)
 
 		elif state == MENU_STATE:
 			view.setImage(image)
 			view.resize(2)
 			view.showMain([10,50,100], ["ABCD"])
 		
-
+	del(handle)
 
 
 
