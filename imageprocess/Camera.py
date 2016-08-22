@@ -23,7 +23,10 @@ class Camera:
 	def __del__(self):
 		if self.cap != None:
 			self.cap.release()
-			self.cap.destroyAllWindows()
+			try:
+				self.cap.destroyAllWindows()
+			except Exception, e:
+				pass
 
 	def getImage(self):
 		return self.cap.read()
