@@ -22,12 +22,14 @@ import view
 # import handle as h
 import data
 data = data.Data
+__red = False
 
 class beepLoop(threading.Thread):
 	def __init__(self, path='beep.wav'):
 		threading.Thread.__init__(self)
 		self.__exit = False
 		self.__beep = False
+		self.__red  = False
 		
 	def run(self):
 
@@ -52,6 +54,7 @@ class beepLoop(threading.Thread):
 		self.__beep = False
 
 	def beep(self):
+		__red = True
 		wf = wave.open('beep.wav', 'rb')
 		pya = pyaudio.PyAudio()
 		stream = pya.open(format=pya.get_format_from_width(wf.getsampwidth()),
@@ -65,6 +68,10 @@ class beepLoop(threading.Thread):
 
 		stream.close()
 		pya.terminate()
+		__red = False
+
+	def getRed(self):
+		return __red
 
 class TcpLoop(threading.Thread):
 	class MyTCPHandler(SocketServer.BaseRequestHandler):
@@ -75,6 +82,7 @@ class TcpLoop(threading.Thread):
 				print "{} wrote:".format(self.client_address[0])
 				print self.data
 				if self.data == '1':
+					__red = True
 					print '1'
 					wf = wave.open('beep.wav', 'rb')
 					pya = pyaudio.PyAudio()
@@ -89,6 +97,7 @@ class TcpLoop(threading.Thread):
 
 					stream.close()
 					pya.terminate()
+					__red = False
 				elif self.data == '0':
 					print '0'
 					break
@@ -125,6 +134,7 @@ if __name__ == '__main__':
 	state = 0
 	MENU_STATE = 0
 	DRIVE_STATE = 1
+	MENU2_STATE = 2
 	txt_arr = []
 	txt_limit = 20
 	dri_arr = []
@@ -136,12 +146,6 @@ if __name__ == '__main__':
 	eye = imageprocess.ObjectDetect("haarcascade_eye.xml")
 	beep = beepLoop()
 	beep.start()
-	tcp = TcpLoop(beep)
-	tcp.start()
-	# try:
-	# 	handle = h.Handle("/dev/cu.usbmodem14221")
-	# except serial.serialutil.SerialException:
-	# 	print "SerialException"				
 
 	face.setOption({
 		'scaleFactor': 1.1,
@@ -162,8 +166,13 @@ if __name__ == '__main__':
 			break
 		elif inputed == ord('s'):
 			state = DRIVE_STATE
+			beep.beepStop()
 		elif inputed == ord('e'):
 			state = MENU_STATE
+			beep.beepStop()
+		elif inputed == ord('2'):
+			state = MENU2_STATE
+			beep.beepStop()
 
 		result = {
 			'face': False,
@@ -245,9 +254,9 @@ if __name__ == '__main__':
 
 				# sys.stdout.write("          ")
 
-			sys.stdout.write("\r")
-			sys.stdout.write(str(result))
-			sys.stdout.flush()
+			# sys.stdout.write("\r")
+			# sys.stdout.write(str(result))
+			# sys.stdout.flush()
 
 			view.setImage(image)
 			view.resize(2.5)
@@ -290,11 +299,29 @@ if __name__ == '__main__':
 					cur_time = datetime.now().strftime('%S.%f')[:-3]				
 					push_value(txt_arr, txt_limit, cur_time + "  " + txt)
 
-
 			view.showDrive(dri_arr, txt_arr)
 
 		elif state == MENU_STATE:
 			summary = data('bigdata/summary.csv')
+
+			dri_arr2 = []
+
+			while True:
+				row = summary.getRow()
+				if row == False:
+					break
+				index = summary.calcSummaryIndex(row)
+				# print index
+				dri_arr2.append(index)
+
+			txt_arr2 = summary.getSummaryText(dri_arr2)
+			
+			view.setImage(image)
+			view.resize(2.5)
+			view.showMain(dri_arr2, txt_arr2)
+
+		elif state == MENU2_STATE:
+			summary = data('bigdata/summary2.csv')
 
 			dri_arr2 = []
 
