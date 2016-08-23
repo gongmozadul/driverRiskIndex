@@ -28,6 +28,7 @@ class beepLoop(threading.Thread):
 		threading.Thread.__init__(self)
 		self.__exit = False
 		self.__beep = False
+		self.__red  = False
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		
 	def run(self):
@@ -65,6 +66,7 @@ class beepLoop(threading.Thread):
 		self.__beep = False
 
 	def beep(self):
+		self.__red = True
 		wf = wave.open('beep.wav', 'rb')
 		pya = pyaudio.PyAudio()
 		stream = pya.open(format=pya.get_format_from_width(wf.getsampwidth()),
@@ -78,6 +80,10 @@ class beepLoop(threading.Thread):
 
 		stream.close()
 		pya.terminate()
+		self.__red = False
+
+	def getRed(self):
+		return self.__red
 
 
 def push_value(arr, limit, value):
@@ -98,6 +104,7 @@ if __name__ == '__main__':
 	state = 0
 	MENU_STATE = 0
 	DRIVE_STATE = 1
+	MENU2_STATE = 2
 	txt_arr = []
 	txt_limit = 20
 	dri_arr = []
@@ -133,8 +140,13 @@ if __name__ == '__main__':
 			break
 		elif inputed == ord('s'):
 			state = DRIVE_STATE
+			beep.beepStop()
 		elif inputed == ord('e'):
 			state = MENU_STATE
+			beep.beepStop()
+		elif inputed == ord('2'):
+			state = MENU2_STATE
+			beep.beepStop()
 
 		result = {
 			'face': False,
@@ -224,6 +236,9 @@ if __name__ == '__main__':
 			view.resize(2.5)
 
 			pressure = handle.getPressure()
+			if beep.getRed():
+				print 'r'
+				view.setRedOverlay()
 
 			newTime = time.time()
 			row = None
@@ -258,11 +273,29 @@ if __name__ == '__main__':
 					cur_time = datetime.now().strftime('%S.%f')[:-3]				
 					push_value(txt_arr, txt_limit, cur_time + "  " + txt)
 
-
 			view.showDrive(dri_arr, txt_arr)
 
 		elif state == MENU_STATE:
 			summary = data('bigdata/summary.csv')
+
+			dri_arr2 = []
+
+			while True:
+				row = summary.getRow()
+				if row == False:
+					break
+				index = summary.calcSummaryIndex(row)
+				# print index
+				dri_arr2.append(index)
+
+			txt_arr2 = summary.getSummaryText(dri_arr2)
+			
+			view.setImage(image)
+			view.resize(2.5)
+			view.showMain(dri_arr2, txt_arr2)
+
+		elif state == MENU2_STATE:
+			summary = data('bigdata/summary2.csv')
 
 			dri_arr2 = []
 

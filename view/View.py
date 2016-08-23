@@ -22,6 +22,13 @@ class View:
 	def show(self):
 		cv2.imshow(self.title, self.image)
 
+	def setRedOverlay(self):
+		height, width, channel = self.image.shape
+		image = self.image.copy()
+		
+		cv2.rectangle(image, (0, 0), (width, height), (0, 0, 255), -1)
+		cv2.addWeighted(image, 0.7, self.image, 0.3, 0, self.image)
+
 	def showDrive(self, dri_arr, txt_arr):
 		self.drawGraph(dri_arr, x_gap=0.01, y_gap=0.05, thickness=1, width_ratio=0.65)
 		self.drawText(0.67, 0.05, txt_arr)
