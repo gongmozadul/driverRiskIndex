@@ -105,6 +105,7 @@ if __name__ == '__main__':
 	MENU_STATE = 0
 	DRIVE_STATE = 1
 	MENU2_STATE = 2
+	GOGO_STATE = 3
 	txt_arr = []
 	txt_limit = 20
 	dri_arr = []
@@ -117,7 +118,7 @@ if __name__ == '__main__':
 	beep = beepLoop()
 	beep.start()
 	try:
-		handle = h.Handle("/dev/cu.usbmodem14221")
+		handle = h.Handle("/dev/cu.usbmodem1411")
 	except serial.serialutil.SerialException:
 		print "SerialException"				
 
@@ -147,6 +148,9 @@ if __name__ == '__main__':
 		elif inputed == ord('2'):
 			state = MENU2_STATE
 			beep.beepStop()
+		elif inputed == ord('g'):
+			state = GOGO_STATE
+			beep.beepStop()
 
 		result = {
 			'face': False,
@@ -157,7 +161,7 @@ if __name__ == '__main__':
 		ret, image = camera.getImage()
 		image = cv2.flip(image, 1)
 
-		if state == DRIVE_STATE:
+		if state == DRIVE_STATE or state == GOGO_STATE:
 			gray = camera.convertGray(image)
 
 			faces = face.detect(gray)
@@ -244,6 +248,8 @@ if __name__ == '__main__':
 			if newTime - oldTime > 1: # 1 second loop
 				oldTime = newTime
 				row = realtime.getRow()
+				if state == GOGO_STATE:
+					row[7] = '200'
 				value, txt_arr2 = realtime.calcRealtimeIndex(row, pressure[1], result['eye'])
 				if value == 100:
 					beep.beepStart()
@@ -314,6 +320,7 @@ if __name__ == '__main__':
 		
 	del(handle)
 	beep.Stop()
+	tcp.Stop()
 
 
 

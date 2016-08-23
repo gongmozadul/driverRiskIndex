@@ -73,7 +73,7 @@ class Data:
 
 		# print kph, road, grade, pressure, wheel_degree, eyeopen
 
-		result = ["Road type: "+str(road), "Gradient: "+str(round(grade, 4)), "handle pressure: "+str(pressure), "wheel: "+str(wheel_degree), "eye open: "+str(eyeopen)]
+		result = ["KPH: "+str(kph), "Road type: "+str(road), "Gradient: "+str(round(grade, 4)), "handle pressure: "+str(pressure), "wheel: "+str(wheel_degree), "eye open: "+str(eyeopen)]
 
 		beep = 10000
 
