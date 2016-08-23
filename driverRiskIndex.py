@@ -54,7 +54,7 @@ class beepLoop(threading.Thread):
 		self.__beep = False
 
 	def beep(self):
-		__red = True
+		self.__red = True
 		wf = wave.open('beep.wav', 'rb')
 		pya = pyaudio.PyAudio()
 		stream = pya.open(format=pya.get_format_from_width(wf.getsampwidth()),
@@ -68,10 +68,13 @@ class beepLoop(threading.Thread):
 
 		stream.close()
 		pya.terminate()
-		__red = False
+		self.__red = False
+
+	def setRed(self, boolean):
+		self.__red = boolean
 
 	def getRed(self):
-		return __red
+		return self.__red
 
 class TcpLoop(threading.Thread):
 	class MyTCPHandler(SocketServer.BaseRequestHandler):
@@ -82,8 +85,8 @@ class TcpLoop(threading.Thread):
 				print "{} wrote:".format(self.client_address[0])
 				print self.data
 				if self.data == '1':
-					__red = True
 					print '1'
+					self.server.beep.setRed(True)
 					wf = wave.open('beep.wav', 'rb')
 					pya = pyaudio.PyAudio()
 					stream = pya.open(format=pya.get_format_from_width(wf.getsampwidth()),
@@ -97,7 +100,7 @@ class TcpLoop(threading.Thread):
 
 					stream.close()
 					pya.terminate()
-					__red = False
+					self.server.beep.setRed(False)
 				elif self.data == '0':
 					print '0'
 					break
@@ -105,10 +108,13 @@ class TcpLoop(threading.Thread):
 	def __init__(self, beep):
 		threading.Thread.__init__(self)
 		self.__exit = False
+		self.beep = beep
 		
 	def run(self):
 		server = SocketServer.TCPServer(("0.0.0.0", 39999), self.MyTCPHandler)
 		self.server = server
+		self.server.beep = self.beep
+
 		server.serve_forever()
 
 	def Stop(self):
@@ -146,6 +152,8 @@ if __name__ == '__main__':
 	eye = imageprocess.ObjectDetect("haarcascade_eye.xml")
 	beep = beepLoop()
 	beep.start()
+	tcp = TcpLoop(beep)
+	tcp.start()
 
 	face.setOption({
 		'scaleFactor': 1.1,
@@ -263,6 +271,8 @@ if __name__ == '__main__':
 
 			# pressure = handle.getPressure()
 			pressure = ['', 2000]
+			if beep.getRed():
+				view.setRedOverlay()
 
 			newTime = time.time()
 			row = None
@@ -342,18 +352,3 @@ if __name__ == '__main__':
 	# del(handle)
 	beep.Stop()
 	tcp.Stop()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
