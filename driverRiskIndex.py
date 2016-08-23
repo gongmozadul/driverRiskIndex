@@ -237,7 +237,6 @@ if __name__ == '__main__':
 
 			pressure = handle.getPressure()
 			if beep.getRed():
-				print 'r'
 				view.setRedOverlay()
 
 			newTime = time.time()
